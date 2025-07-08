@@ -1,0 +1,179 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  avatar        String?
+  timezone      String   @default("UTC")
+  preferences   Json     @default("{}")
+  isOnboarded   Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  goals         Goal[]
+  tasks         Task[]
+  calendarEvents CalendarEvent[]
+  reflections   Reflection[]
+  notifications Notification[]
+  integrations  Integration[]
+
+  @@map("users")
+}
+
+model Goal {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  category    String   @default("personal")
+  priority    Priority @default(MEDIUM)
+  status      GoalStatus @default(ACTIVE)
+  targetDate  DateTime?
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+
+  @@map("goals")
+}
+
+model Task {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  category    String   @default("personal")
+  priority    Priority @default(MEDIUM)
+  status      TaskStatus @default(PENDING)
+  estimatedDuration Int? // in minutes
+  actualDuration    Int? // in minutes
+  dueDate     DateTime?
+  scheduledAt DateTime?
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goalId      String?
+  goal        Goal?    @relation(fields: [goalId], references: [id], onDelete: SetNull)
+
+  @@map("tasks")
+}
+
+model CalendarEvent {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  startTime   DateTime
+  endTime     DateTime
+  location    String?
+  isAllDay    Boolean  @default(false)
+  externalId  String?  // For syncing with external calendars
+  source      String   @default("kairos") // kairos, google, outlook, apple
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("calendar_events")
+}
+
+model Reflection {
+  id          String   @id @default(cuid())
+  content     String
+  mood        Int?     // 1-10 scale
+  productivity Int?    // 1-10 scale
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("reflections")
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+  title       String
+  message     String
+  type        NotificationType @default(REMINDER)
+  isRead      Boolean  @default(false)
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model Integration {
+  id          String   @id @default(cuid())
+  provider    String   // google, outlook, apple
+  accessToken String
+  refreshToken String?
+  expiresAt   DateTime?
+  isActive    Boolean  @default(true)
+  settings    Json     @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+  @@map("integrations")
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum GoalStatus {
+  ACTIVE
+  COMPLETED
+  PAUSED
+  CANCELLED
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum NotificationType {
+  REMINDER
+  GOAL_UPDATE
+  TASK_DUE
+  REFLECTION
+  SYSTEM
+} 

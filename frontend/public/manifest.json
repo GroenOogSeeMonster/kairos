@@ -1,0 +1,71 @@
+{
+  "name": "Kairos - AI-Powered Personal Planning Assistant",
+  "short_name": "Kairos",
+  "description": "Plan, prioritize, and achieve your goals with intelligent assistance",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["productivity", "lifestyle", "utilities"],
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add Task",
+      "short_name": "Add Task",
+      "description": "Quickly add a new task",
+      "url": "/tasks/new",
+      "icons": [
+        {
+          "src": "/shortcut-add-task.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Daily View",
+      "short_name": "Today",
+      "description": "View today's tasks and schedule",
+      "url": "/today",
+      "icons": [
+        {
+          "src": "/shortcut-today.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Goals",
+      "short_name": "Goals",
+      "description": "View and manage your goals",
+      "url": "/goals",
+      "icons": [
+        {
+          "src": "/shortcut-goals.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+} 
