@@ -3,7 +3,7 @@
 # Kairos - AI-Powered Personal Planning Assistant
 # Installation Script
 
-set -e
+set -e  # Exit on any error
 
 echo "🚀 Setting up Kairos - AI-Powered Personal Planning Assistant"
 echo "=========================================================="
@@ -31,6 +31,7 @@ if ! command -v npm &> /dev/null; then
 fi
 
 echo "✅ npm $(npm -v) detected"
+echo "ℹ️  Note: You may see a warning about a newer npm version available. This is normal and won't affect functionality."
 
 # Create environment files
 echo "📝 Creating environment files..."
@@ -57,13 +58,19 @@ fi
 # Install backend dependencies
 echo "📦 Installing backend dependencies..."
 cd backend
-npm install
+if ! npm install --legacy-peer-deps --no-audit; then
+    echo "❌ Backend installation failed. Try running ./fix-install.sh"
+    exit 1
+fi
 echo "✅ Backend dependencies installed"
 
 # Install frontend dependencies
 echo "📦 Installing frontend dependencies..."
 cd ../frontend
-npm install
+if ! npm install --legacy-peer-deps --no-audit; then
+    echo "❌ Frontend installation failed. Try running ./fix-install.sh"
+    exit 1
+fi
 echo "✅ Frontend dependencies installed"
 
 # Generate Prisma client
@@ -88,4 +95,6 @@ echo "  Frontend: cd frontend && npm run dev"
 echo ""
 echo "📚 For more information, see the README.md file"
 echo ""
-echo "Happy planning! 🎯" 
+echo "Happy planning! 🎯"
+echo ""
+echo "💡 If you encounter any installation issues, run: ./fix-install.sh" 
