@@ -1,42 +1,22 @@
-# Use Node.js 18 Alpine as base image
+# Use official Node.js image
 FROM node:18-alpine
 
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    && rm -rf /var/cache/apk/*
+# Copy only production lock file and package.json
+COPY package.json package-lock.prod.json ./
+# Rename for npm
+RUN mv package-lock.prod.json package-lock.json
 
-# Copy package files
-COPY package*.json ./
+# Install only production dependencies
+RUN npm install --omit=dev --legacy-peer-deps
 
-# Install dependencies
-RUN npm ci --only=production
-
-# Copy source code
+# Copy the rest of the application
 COPY . .
 
-# Generate Prisma client
-RUN npx prisma generate
-
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
-
-# Change ownership of the app directory
-RUN chown -R nodejs:nodejs /app
-USER nodejs
-
-# Expose port
+# Expose port (change if your app uses a different port)
 EXPOSE 3001
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node healthcheck.js
-
-# Start the application
-CMD ["npm", "start"] 
+# Start the app
+CMD ["node", "dist/index.js"] 
