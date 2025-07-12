@@ -18,7 +18,7 @@ export const sendNotification = async (data: NotificationData) => {
         title: data.title,
         message: data.message,
         type: data.type,
-        scheduledAt: data.scheduledAt,
+        scheduledAt: data.scheduledAt ?? null,
         sentAt: new Date(),
       },
     });
@@ -59,7 +59,7 @@ const sendEmailNotification = async (data: NotificationData) => {
       select: { email: true, name: true },
     });
 
-    if (user && process.env.SMTP_HOST) {
+    if (user && process.env['SMTP_HOST']) {
       // Here you would integrate with nodemailer
       // For now, we'll just log the email
       console.log(`Email notification sent to ${user.email}: ${data.title}`);

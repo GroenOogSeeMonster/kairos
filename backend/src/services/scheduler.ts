@@ -1,6 +1,5 @@
 import cron from 'node-cron';
 import { prisma } from './database';
-import { redisClient } from './redis';
 import { sendNotification } from './notification';
 
 export const initializeScheduler = async () => {
@@ -68,7 +67,7 @@ const sendMorningBriefings = async () => {
   for (const user of users) {
     if (user.tasks.length > 0) {
       const taskList = user.tasks
-        .map((task, index) => `${index + 1}. ${task.title}`)
+        .map((task: any, index: number) => `${index + 1}. ${task.title}`)
         .join('\n');
 
       await sendNotification({

@@ -2,7 +2,7 @@ import OpenAI from 'openai';
 import { prisma } from './database';
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env['OPENAI_API_KEY'],
 });
 
 export interface GoalSuggestion {
@@ -35,9 +35,23 @@ export const generateGoalSuggestions = async (
       },
     });
 
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    if (!user.goals) {
+      user.goals = [];
+    }
+    if (!user.tasks) {
+      user.tasks = [];
+    }
+
+    const userGoals = user.goals;
+    const userTasks = user.tasks;
+
     const context = `
-User's current goals: ${user?.goals.map(g => g.title).join(', ') || 'None'}
-User's pending tasks: ${user?.tasks.map(t => t.title).join(', ') || 'None'}
+User's current goals: ${userGoals.map((g: any) => g.title).join(', ') || 'None'}
+User's pending tasks: ${userTasks.map((t: any) => t.title).join(', ') || 'None'}
 User input: ${userInput}
 `;
 
@@ -71,8 +85,11 @@ Return the response as a JSON array of objects with the following structure:
       temperature: 0.7,
     });
 
-    const suggestions = JSON.parse(completion.choices[0].message.content || '[]');
-    return suggestions;
+    const suggestions = JSON.parse(completion.choices[0].message.content || '[]') || [];
+    return suggestions.map((suggestion: any) => ({
+      ...suggestion,
+      dueDate: suggestion.dueDate ? new Date(suggestion.dueDate) : undefined,
+    }));
   } catch (error) {
     console.error('Error generating goal suggestions:', error);
     throw new Error('Failed to generate goal suggestions');
@@ -95,10 +112,16 @@ export const generateTaskSuggestions = async (
       throw new Error('Goal not found');
     }
 
+    if (!goal.tasks) {
+      goal.tasks = [];
+    }
+
+    const goalTasks = goal.tasks;
+
     const context = `
 Goal: ${goal.title}
 Goal description: ${goal.description || 'No description'}
-Current tasks for this goal: ${goal.tasks.map(t => t.title).join(', ') || 'None'}
+Current tasks for this goal: ${goalTasks.map((t: any) => t.title).join(', ') || 'None'}
 Goal target date: ${goal.targetDate || 'No target date'}
 `;
 
@@ -134,7 +157,12 @@ Return the response as a JSON array of objects with the following structure:
     });
 
     const suggestions = JSON.parse(completion.choices[0].message.content || '[]');
-    return suggestions.map((suggestion: any) => ({
+    if (!suggestions) {
+      return [];
+    }
+
+    const suggestionsArray = suggestions;
+    return suggestionsArray.map((suggestion: any) => ({
       ...suggestion,
       dueDate: suggestion.dueDate ? new Date(suggestion.dueDate) : undefined,
     }));
@@ -153,9 +181,12 @@ export const prioritizeTasks = async (taskIds: string[], userId: string): Promis
       },
     });
 
-    const taskContext = tasks
-      .map(task => `- ${task.title} (${task.priority}, due: ${task.dueDate || 'No due date'})`)
-      .join('\n');
+    if (!tasks) {
+      return taskIds;
+    }
+
+    const tasksArray = tasks;
+    const taskContext = tasksArray.map((task: any) => `- ${task.title} (${task.priority}, due: ${task.dueDate || 'No due date'})`).join('\n') || 'No tasks found.';
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4',
@@ -178,7 +209,7 @@ Return the task IDs in order of priority (most important first) as a JSON array 
       temperature: 0.3,
     });
 
-    const prioritizedIds = JSON.parse(completion.choices[0].message.content || '[]');
+    const prioritizedIds = JSON.parse(completion.choices[0].message.content || '[]') || [];
     return prioritizedIds;
   } catch (error) {
     console.error('Error prioritizing tasks:', error);
@@ -216,8 +247,8 @@ export const generateDailySchedule = async (
     });
 
     const context = `
-Tasks for today: ${tasks.map(t => `${t.title} (${t.estimatedDuration || 30}min, ${t.priority})`).join(', ')}
-Calendar events: ${calendarEvents.map(e => `${e.title} (${e.startTime.toTimeString()}-${e.endTime.toTimeString()})`).join(', ')}
+Tasks for today: ${(tasks && tasks.length > 0) ? tasks.map((t: any) => `${t.title} (${t.estimatedDuration || 30}min, ${t.priority})`).join(', ') : 'None'}
+Calendar events: ${(calendarEvents && calendarEvents.length > 0) ? calendarEvents.map((e: any) => `${e.title} (${e.startTime.toTimeString()}-${e.endTime.toTimeString()})`).join(', ') : 'None'}
 `;
 
     const completion = await openai.chat.completions.create({
@@ -248,7 +279,7 @@ Return the schedule as a JSON array of time blocks with the following structure:
       temperature: 0.5,
     });
 
-    const schedule = JSON.parse(completion.choices[0].message.content || '[]');
+    const schedule = JSON.parse(completion.choices[0].message.content || '[]') || [];
     return schedule;
   } catch (error) {
     console.error('Error generating daily schedule:', error);
@@ -262,7 +293,7 @@ export const generateReflectionPrompt = async (userId: string): Promise<string> 
     const startOfDay = new Date(today.setHours(0, 0, 0, 0));
     const endOfDay = new Date(today.setHours(23, 59, 59, 999));
 
-    const completedTasks = await prisma.task.findMany({
+    let completedTasks = await prisma.task.findMany({
       where: {
         userId,
         status: 'COMPLETED',
@@ -273,7 +304,7 @@ export const generateReflectionPrompt = async (userId: string): Promise<string> 
       },
     });
 
-    const pendingTasks = await prisma.task.findMany({
+    let pendingTasks = await prisma.task.findMany({
       where: {
         userId,
         status: 'PENDING',
@@ -284,9 +315,19 @@ export const generateReflectionPrompt = async (userId: string): Promise<string> 
       take: 5,
     });
 
+    if (!completedTasks) {
+      completedTasks = [];
+    }
+    if (!pendingTasks) {
+      pendingTasks = [];
+    }
+
+    const completedTasksArray = completedTasks;
+    const pendingTasksArray = pendingTasks;
+
     const context = `
-Completed tasks today: ${completedTasks.map(t => t.title).join(', ') || 'None'}
-Upcoming tasks: ${pendingTasks.map(t => t.title).join(', ') || 'None'}
+Completed tasks today: ${completedTasksArray.map((t: any) => t.title).join(', ') || 'None'}
+Upcoming tasks: ${pendingTasksArray.map((t: any) => t.title).join(', ') || 'None'}
 `;
 
     const completion = await openai.chat.completions.create({

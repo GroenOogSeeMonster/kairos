@@ -1,22 +1,21 @@
 import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
 import { prisma } from '../services/database';
+import { Request, Response } from 'express';
 
 const router = Router();
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const googleClient = new OAuth2Client(process.env['GOOGLE_CLIENT_ID']);
 
 // Register user
 router.post(
   '/register',
   [
     body('email').isEmail().normalizeEmail(),
-    body('password').isLength({ min: 6 }),
     body('name').trim().isLength({ min: 2 }),
   ],
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -27,7 +26,7 @@ router.post(
         });
       }
 
-      const { email, password, name } = req.body;
+      const { email, name } = req.body;
 
       // Check if user already exists
       const existingUser = await prisma.user.findUnique({
@@ -41,27 +40,25 @@ router.post(
         });
       }
 
-      // Hash password
-      const saltRounds = 12;
-      const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-      // Create user
+      // Create user (passwordless for now)
       const user = await prisma.user.create({
         data: {
           email,
-          name,
+          name: name || null,
           preferences: {},
         },
       });
 
       // Generate JWT token
+      if (!process.env['JWT_SECRET']) throw new Error('JWT_SECRET is not set');
+      const signOptions: SignOptions = { expiresIn: 7 * 24 * 60 * 60 }; // 7 days in seconds
       const token = jwt.sign(
         { id: user.id, email: user.email },
-        process.env.JWT_SECRET!,
-        { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+        process.env['JWT_SECRET'] as string,
+        signOptions
       );
 
-      res.status(201).json({
+      return res.status(201).json({
         success: true,
         data: {
           user: {
@@ -75,7 +72,7 @@ router.post(
       });
     } catch (error) {
       console.error('Registration error:', error);
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: 'Registration failed',
       });
@@ -83,14 +80,13 @@ router.post(
   }
 );
 
-// Login user
+// Login user (passwordless for now)
 router.post(
   '/login',
   [
     body('email').isEmail().normalizeEmail(),
-    body('password').notEmpty(),
   ],
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -101,37 +97,36 @@ router.post(
         });
       }
 
-      const { email, password } = req.body;
+      const { email } = req.body;
 
       // Find user
       const user = await prisma.user.findUnique({
         where: { email },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          isOnboarded: true,
+        },
       });
 
       if (!user) {
         return res.status(401).json({
           success: false,
-          error: 'Invalid credentials',
-        });
-      }
-
-      // Check password
-      const isPasswordValid = await bcrypt.compare(password, user.password || '');
-      if (!isPasswordValid) {
-        return res.status(401).json({
-          success: false,
-          error: 'Invalid credentials',
+          error: 'User not found',
         });
       }
 
       // Generate JWT token
+      if (!process.env['JWT_SECRET']) throw new Error('JWT_SECRET is not set');
+      const signOptions: SignOptions = { expiresIn: 7 * 24 * 60 * 60 }; // 7 days in seconds
       const token = jwt.sign(
         { id: user.id, email: user.email },
-        process.env.JWT_SECRET!,
-        { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+        process.env['JWT_SECRET'] as string,
+        signOptions
       );
 
-      res.json({
+      return res.json({
         success: true,
         data: {
           user: {
@@ -145,7 +140,7 @@ router.post(
       });
     } catch (error) {
       console.error('Login error:', error);
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: 'Login failed',
       });
@@ -154,7 +149,7 @@ router.post(
 );
 
 // Google OAuth
-router.post('/google', async (req, res) => {
+router.post('/google', async (req: Request, res: Response) => {
   try {
     const { idToken } = req.body;
 
@@ -168,7 +163,7 @@ router.post('/google', async (req, res) => {
     // Verify Google token
     const ticket = await googleClient.verifyIdToken({
       idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: process.env['GOOGLE_CLIENT_ID'] || '',
     });
 
     const payload = ticket.getPayload();
@@ -190,21 +185,23 @@ router.post('/google', async (req, res) => {
       user = await prisma.user.create({
         data: {
           email: email!,
-          name: name || undefined,
-          avatar: picture || undefined,
+          name: name || null,
+          avatar: picture || null,
           preferences: {},
         },
       });
     }
 
     // Generate JWT token
+    if (!process.env['JWT_SECRET']) throw new Error('JWT_SECRET is not set');
+    const signOptions: SignOptions = { expiresIn: 7 * 24 * 60 * 60 }; // 7 days in seconds
     const token = jwt.sign(
       { id: user.id, email: user.email },
-      process.env.JWT_SECRET!,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      process.env['JWT_SECRET'] as string,
+      signOptions
     );
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         user: {
@@ -219,7 +216,7 @@ router.post('/google', async (req, res) => {
     });
   } catch (error) {
     console.error('Google OAuth error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Google authentication failed',
     });
@@ -227,7 +224,7 @@ router.post('/google', async (req, res) => {
 });
 
 // Get current user
-router.get('/me', async (req, res) => {
+router.get('/me', async (req: Request, res: Response) => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
 
@@ -238,7 +235,7 @@ router.get('/me', async (req, res) => {
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+    const decoded = jwt.verify(token, process.env['JWT_SECRET']!) as any;
     
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
@@ -261,13 +258,13 @@ router.get('/me', async (req, res) => {
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: { user },
     });
   } catch (error) {
     console.error('Get current user error:', error);
-    res.status(401).json({
+    return res.status(401).json({
       success: false,
       error: 'Invalid token',
     });
@@ -275,7 +272,7 @@ router.get('/me', async (req, res) => {
 });
 
 // Refresh token
-router.post('/refresh', async (req, res) => {
+router.post('/refresh', async (req: Request, res: Response) => {
   try {
     const { refreshToken } = req.body;
 
@@ -287,7 +284,7 @@ router.post('/refresh', async (req, res) => {
     }
 
     // Verify refresh token (you might want to store refresh tokens in Redis)
-    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET!) as any;
+    const decoded = jwt.verify(refreshToken, process.env['JWT_SECRET']!) as any;
     
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
@@ -307,13 +304,15 @@ router.post('/refresh', async (req, res) => {
     }
 
     // Generate new access token
+    if (!process.env['JWT_SECRET']) throw new Error('JWT_SECRET is not set');
+    const signOptions: SignOptions = { expiresIn: 7 * 24 * 60 * 60 }; // 7 days in seconds
     const newToken = jwt.sign(
       { id: user.id, email: user.email },
-      process.env.JWT_SECRET!,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      process.env['JWT_SECRET'] as string,
+      signOptions
     );
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         token: newToken,
@@ -327,7 +326,7 @@ router.post('/refresh', async (req, res) => {
     });
   } catch (error) {
     console.error('Refresh token error:', error);
-    res.status(401).json({
+    return res.status(401).json({
       success: false,
       error: 'Invalid refresh token',
     });

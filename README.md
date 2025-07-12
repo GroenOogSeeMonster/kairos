@@ -2,6 +2,12 @@
 
 A modern, intuitive, and AI-powered Personal Planning Assistant that helps users effectively plan, prioritize, and align their short- and long-term goals, integrating seamlessly into their daily routines.
 
+![Kairos Dashboard](https://img.shields.io/badge/Status-Active-brightgreen)
+![React](https://img.shields.io/badge/React-18.2.0-blue)
+![Node.js](https://img.shields.io/badge/Node.js-18+-green)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.2.2-blue)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.3.6-38B2AC)
+
 ## 🌟 Features
 
 ### AI-Driven Productivity
@@ -29,14 +35,53 @@ A modern, intuitive, and AI-powered Personal Planning Assistant that helps users
 - **Progress Analytics**: AI-generated weekly/monthly progress summaries
 - **Mobile-First Design**: PWA with native app experience
 
-## 🚀 Tech Stack
+## 🚀 Quick Start
+
+### Prerequisites
+- **Node.js 18+** - [Download here](https://nodejs.org/)
+- **Git** - [Download here](https://git-scm.com/)
+- **Docker** (optional) - [Download here](https://www.docker.com/)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/kairos.git
+   cd kairos
+   ```
+
+2. **Run the installation script**
+   ```bash
+   chmod +x install.sh
+   ./install.sh
+   ```
+
+3. **Configure your environment**
+   - Edit `backend/.env` with your database and API keys
+   - Edit `frontend/.env` with your Google OAuth client ID
+
+4. **Start the application**
+   ```bash
+   # Local development
+   ./start-local.sh
+   
+   # Or with Docker
+   ./start-docker.sh
+   ```
+
+5. **Access the application**
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:3001
+
+## 🛠️ Tech Stack
 
 ### Frontend
 - **React 18** with TypeScript
-- **TailwindCSS** for styling
-- **Framer Motion** for animations
+- **TailwindCSS** for modern styling
+- **Framer Motion** for smooth animations
 - **React Query** for data fetching
 - **React Hook Form** for form management
+- **Lucide React** for beautiful icons
 
 ### Backend
 - **Node.js** with Express
@@ -66,76 +111,46 @@ A modern, intuitive, and AI-powered Personal Planning Assistant that helps users
 5. **Reflection**: End-of-day review and tomorrow's planning
 6. **Progress Tracking**: Regular AI-generated insights and adjustments
 
-## 🛠️ Getting Started
+## 🎨 Modern UI Features
 
-### Prerequisites
-- Node.js 18+ 
-- PostgreSQL 14+
-- Redis 6+
-- OpenAI API key
-- Google Calendar API credentials
+### Clean & Intuitive Design
+- **Modern Card Layout**: Clean, organized information display
+- **Responsive Design**: Works perfectly on all devices
+- **Dark Mode Support**: Easy on the eyes in any lighting
+- **Smooth Animations**: Delightful micro-interactions
 
-### Installation
+### Enhanced User Experience
+- **Smart Search**: Find goals and tasks instantly
+- **Filter & Sort**: Organize content your way
+- **Progress Tracking**: Visual progress indicators
+- **Quick Actions**: One-click task completion
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/kairos.git
-   cd kairos
-   ```
+### Accessibility
+- **Keyboard Navigation**: Full keyboard support
+- **Screen Reader Friendly**: Proper ARIA labels
+- **High Contrast**: Clear visual hierarchy
+- **Focus Management**: Logical tab order
 
-2. **Install dependencies**
-   ```bash
-   # Install backend dependencies
-   cd backend
-   npm install
-   
-   # Install frontend dependencies
-   cd ../frontend
-   npm install
-   ```
+## 🚀 Deployment
 
-3. **Environment Setup**
-   ```bash
-   # Backend environment
-   cp backend/.env.example backend/.env
-   
-   # Frontend environment
-   cp frontend/.env.example frontend/.env
-   ```
-
-4. **Database Setup**
-   ```bash
-   cd backend
-   npx prisma migrate dev
-   npx prisma generate
-   ```
-
-5. **Start Development Servers**
-   ```bash
-   # Backend (from backend directory)
-   npm run dev
-   
-   # Frontend (from frontend directory)
-   npm run dev
-   ```
-
-### Environment Variables
-
-#### Backend (.env)
-```env
-DATABASE_URL="postgresql://..."
-REDIS_URL="redis://..."
-OPENAI_API_KEY="sk-..."
-JWT_SECRET="your-jwt-secret"
-GOOGLE_CLIENT_ID="your-google-client-id"
-GOOGLE_CLIENT_SECRET="your-google-client-secret"
+### Frontend (Vercel)
+```bash
+cd frontend
+npm run build
+vercel --prod
 ```
 
-#### Frontend (.env)
-```env
-VITE_API_URL="http://localhost:3001"
-VITE_GOOGLE_CLIENT_ID="your-google-client-id"
+### Backend (Railway)
+```bash
+cd backend
+railway up
 ```
+
+### Database (Supabase)
+1. Create a new project on Supabase
+2. Get your connection string
+3. Update `DATABASE_URL` in your environment
+4. Run migrations: `npx prisma migrate deploy`
 
 ## 📊 Project Structure
 
@@ -147,17 +162,16 @@ kairos/
 │   │   ├── pages/          # Page components
 │   │   ├── hooks/          # Custom React hooks
 │   │   ├── services/       # API services
-│   │   ├── stores/         # State management
+│   │   ├── contexts/       # React contexts
 │   │   └── utils/          # Utility functions
 ├── backend/                 # Node.js backend API
 │   ├── src/
-│   │   ├── controllers/    # Route controllers
+│   │   ├── routes/         # API routes
 │   │   ├── middleware/     # Express middleware
 │   │   ├── services/       # Business logic
-│   │   ├── models/         # Data models
-│   │   └── utils/          # Utility functions
-├── shared/                  # Shared types and utilities
-└── docs/                   # Documentation and mockups
+│   │   └── prisma/         # Database schema
+├── docs/                   # Documentation
+└── scripts/               # Setup and deployment scripts
 ```
 
 ## 🧪 Testing
@@ -173,21 +187,6 @@ npm test
 
 # E2E tests
 npm run test:e2e
-```
-
-## 🚀 Deployment
-
-### Frontend (Vercel)
-```bash
-cd frontend
-npm run build
-vercel --prod
-```
-
-### Backend (Railway)
-```bash
-cd backend
-railway up
 ```
 
 ## 📱 Mobile App
@@ -218,6 +217,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Documentation**: [docs.kairos.app](https://docs.kairos.app)
 - **Issues**: [GitHub Issues](https://github.com/yourusername/kairos/issues)
 - **Discord**: [Join our community](https://discord.gg/kairos)
+
+## 🎯 Roadmap
+
+- [ ] **AI Goal Suggestions**: Smart goal recommendations based on user patterns
+- [ ] **Advanced Analytics**: Detailed productivity insights and trends
+- [ ] **Team Collaboration**: Shared goals and team planning features
+- [ ] **Mobile App**: Native iOS and Android applications
+- [ ] **Calendar Sync**: Enhanced calendar integration with conflict resolution
+- [ ] **Voice Commands**: Voice-controlled task management
+- [ ] **Integrations**: Slack, Notion, and other productivity tools
 
 ---
 

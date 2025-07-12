@@ -1,19 +1,21 @@
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
-
-export const initializeDatabase = async () => {
-  try {
-    await prisma.$connect();
-    console.log('Database connected successfully');
-  } catch (error) {
-    console.error('Database connection failed:', error);
-    throw error;
-  }
+// Create a singleton instance
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
 };
 
-export const disconnectDatabase = async () => {
-  await prisma.$disconnect();
+// Initialize Prisma client with explicit configuration
+const prismaClientSingleton = () => {
+  return new PrismaClient({
+    log: ['query', 'info', 'warn', 'error'],
+  });
 };
 
-export { prisma }; 
+export const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
+
+if ((process.env as any).NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
+}
+
+export default prisma; 

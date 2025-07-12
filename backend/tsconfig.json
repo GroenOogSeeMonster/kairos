@@ -22,7 +22,6 @@
     "exactOptionalPropertyTypes": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
-    "noUncheckedIndexedAccess": true,
     "baseUrl": "./src",
     "paths": {
       "@/*": ["*"],

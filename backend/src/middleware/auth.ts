@@ -1,8 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../services/database';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -27,7 +25,7 @@ export const authMiddleware = async (
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+    const decoded = jwt.verify(token, process.env['JWT_SECRET']!) as any;
     
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
@@ -46,10 +44,14 @@ export const authMiddleware = async (
       });
     }
 
-    req.user = user;
-    next();
+    req.user = {
+      id: user.id,
+      email: user.email,
+      ...(user.name ? { name: user.name } : {}),
+    };
+    return next();
   } catch (error) {
-    res.status(401).json({
+    return res.status(401).json({
       success: false,
       error: 'Token is not valid',
     });
