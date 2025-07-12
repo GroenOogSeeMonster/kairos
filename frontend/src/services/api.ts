@@ -192,6 +192,14 @@ export const notificationsApi = {
 
 // AI API
 export const aiApi = {
+  generateActionPlan: async (primer: any) => {
+    return api.post('/ai/action-plan', { primer })
+  },
+
+  generateTasksFromBrief: async (projectBrief: string) => {
+    return api.post('/ai/tasks-from-brief', { projectBrief })
+  },
+
   generateGoalSuggestions: async (userInput: string) => {
     return api.post('/ai/goal-suggestions', { userInput })
   },

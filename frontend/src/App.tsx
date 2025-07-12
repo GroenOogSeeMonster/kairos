@@ -17,6 +17,8 @@ import CalendarPage from './pages/CalendarPage'
 import ReflectionsPage from './pages/ReflectionsPage'
 import SettingsPage from './pages/SettingsPage'
 import OnboardingPage from './pages/OnboardingPage'
+import ActionPlanPage from './pages/ActionPlanPage'
+import CalendarViewPage from './pages/CalendarViewPage'
 import NotFoundPage from './pages/NotFoundPage'
 
 function App() {
@@ -59,6 +61,8 @@ function App() {
           <Route path="calendar" element={<CalendarPage />} />
           <Route path="reflections" element={<ReflectionsPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="action-plan" element={<ActionPlanPage />} />
+          <Route path="calendar-view" element={<CalendarViewPage />} />
         </Route>
 
         {/* Onboarding Route */}
