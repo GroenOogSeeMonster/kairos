@@ -14,8 +14,8 @@ interface User {
 interface AuthContextType {
   user: User | null
   isLoading: boolean
-  login: (email: string, password: string) => Promise<void>
-  register: (email: string, password: string, name: string) => Promise<void>
+  login: (email: string) => Promise<void>
+  register: (email: string, name: string) => Promise<void>
   logout: () => void
   googleLogin: (idToken: string) => Promise<void>
   updateUser: (data: Partial<User>) => Promise<void>
@@ -44,7 +44,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (token) {
       authApi.getCurrentUser()
         .then((userData) => {
-          setUser(userData)
+          setUser(userData.data.user)
         })
         .catch(() => {
           localStorage.removeItem('token')
@@ -57,16 +57,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [])
 
-  const login = async (email: string, password: string) => {
-    const response = await authApi.login(email, password)
-    localStorage.setItem('token', response.token)
-    setUser(response.user)
+  const login = async (email: string) => {
+    const response = await authApi.login(email)
+    localStorage.setItem('token', response.data.token)
+    setUser(response.data.user)
   }
 
-  const register = async (email: string, password: string, name: string) => {
-    const response = await authApi.register(email, password, name)
-    localStorage.setItem('token', response.token)
-    setUser(response.user)
+  const register = async (email: string, name: string) => {
+    const response = await authApi.register(email, name)
+    localStorage.setItem('token', response.data.token)
+    setUser(response.data.user)
   }
 
   const logout = () => {
@@ -76,13 +76,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const googleLogin = async (idToken: string) => {
     const response = await authApi.googleLogin(idToken)
-    localStorage.setItem('token', response.token)
-    setUser(response.user)
+    localStorage.setItem('token', response.data.token)
+    setUser(response.data.user)
   }
 
   const updateUser = async (data: Partial<User>) => {
     const updatedUser = await authApi.updateUser(data)
-    setUser(updatedUser)
+    setUser(updatedUser.data)
   }
 
   const value = {

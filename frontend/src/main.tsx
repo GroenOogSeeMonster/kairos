@@ -6,7 +6,7 @@ import { HelmetProvider } from 'react-helmet-async'
 import { Toaster } from 'react-hot-toast'
 import { ErrorBoundary } from 'react-error-boundary'
 
-import App from './App.tsx'
+import App from './App'
 import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import ErrorFallback from './components/ErrorFallback'

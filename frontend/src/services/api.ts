@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+const API_BASE_URL = 'http://localhost:3001/api'
 
 // Create axios instance
 const api = axios.create({
@@ -38,12 +38,12 @@ api.interceptors.response.use(
 
 // Auth API
 export const authApi = {
-  login: async (email: string, password: string) => {
-    return api.post('/auth/login', { email, password })
+  login: async (email: string) => {
+    return api.post('/auth/login', { email })
   },
 
-  register: async (email: string, password: string, name: string) => {
-    return api.post('/auth/register', { email, password, name })
+  register: async (email: string, name: string) => {
+    return api.post('/auth/register', { email, name })
   },
 
   googleLogin: async (idToken: string) => {
@@ -232,4 +232,4 @@ export const integrationsApi = {
   },
 }
 
-export default api 
+export default api

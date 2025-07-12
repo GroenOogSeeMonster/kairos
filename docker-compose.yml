@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:
@@ -55,9 +53,8 @@ services:
       CORS_ORIGIN: http://localhost:3000
     ports:
       - "3001:3001"
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
+    # volumes:
+    #   - /app/node_modules
     depends_on:
       postgres:
         condition: service_healthy
@@ -65,7 +62,6 @@ services:
         condition: service_healthy
     networks:
       - kairos-network
-    command: npm run dev
 
   # Frontend Application
   frontend:

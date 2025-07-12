@@ -1,40 +1,71 @@
-import { Menu, Bell, Search } from 'lucide-react'
+import React from 'react'
+import { useAuth } from '../hooks/useAuth'
+import { Menu, Bell, Search, User, Settings } from 'lucide-react'
 
 interface HeaderProps {
   onMenuClick: () => void
 }
 
 const Header = ({ onMenuClick }: HeaderProps) => {
-  return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
-      <div className="flex items-center justify-between h-16 px-4">
-        {/* Mobile menu button */}
-        <button
-          onClick={onMenuClick}
-          className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
-        >
-          <Menu className="h-6 w-6" />
-        </button>
+  const { user } = useAuth()
 
-        {/* Search bar */}
-        <div className="flex-1 max-w-lg mx-4 lg:mx-8">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
+  return (
+    <header className="bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+      <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+        {/* Left side */}
+        <div className="flex items-center">
+          {/* Mobile menu button */}
+          <button
+            onClick={onMenuClick}
+            className="lg:hidden p-2 rounded-lg text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-colors"
+          >
+            <Menu className="h-6 w-6" />
+          </button>
+
+          {/* Search bar - hidden on mobile */}
+          <div className="hidden md:block ml-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search goals, tasks..."
+                className="w-64 pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
             </div>
-            <input
-              type="text"
-              placeholder="Search..."
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-            />
           </div>
         </div>
 
-        {/* Right side actions */}
+        {/* Right side */}
         <div className="flex items-center space-x-4">
           {/* Notifications */}
-          <button className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100">
-            <Bell className="h-6 w-6" />
+          <button className="p-2 rounded-lg text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-colors relative">
+            <Bell className="h-5 w-5" />
+            <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
+          </button>
+
+          {/* User menu */}
+          <div className="relative">
+            <button className="flex items-center space-x-2 p-2 rounded-lg text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-colors">
+              {user?.avatar ? (
+                <img
+                  className="h-8 w-8 rounded-full"
+                  src={user.avatar}
+                  alt={user.name || user.email}
+                />
+              ) : (
+                <div className="h-8 w-8 rounded-full bg-gradient-primary flex items-center justify-center">
+                  <User className="h-5 w-5 text-white" />
+                </div>
+              )}
+              <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-gray-300">
+                {user?.name || 'User'}
+              </span>
+            </button>
+          </div>
+
+          {/* Settings */}
+          <button className="p-2 rounded-lg text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-colors">
+            <Settings className="h-5 w-5" />
           </button>
         </div>
       </div>
